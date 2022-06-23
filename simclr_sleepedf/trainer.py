@@ -34,7 +34,6 @@ class sleep_pretrain(nn.Module):
         self.ft_epochs = config.num_ft_epoch
 
         self.max_f1 = 0
-        self.max_mean_f1 = 0
         self.max_kappa = 0
         self.max_bal_acc = 0
         self.max_acc = 0
@@ -68,12 +67,12 @@ class sleep_pretrain(nn.Module):
 
     def ft_fun(self, epoch,train_dl,valid_dl):
         sleep_eval = sleep_ft(config.exp_path+"/"+self.name+'.pt',self.config,train_dl,valid_dl,epoch,self.loggr)
-        f1,mean_f1,kappa,bal_acc,acc = sleep_eval.fit()
-        return f1,mean_f1,kappa,bal_acc,acc
+        f1,kappa,bal_acc,acc = sleep_eval.fit()
+        return f1,kappa,bal_acc,acc
 
     def do_kfold(self):
         kfold = KFold(n_splits=5, shuffle=True, random_state=1234)
-        k_f1, k_mean_f1, k_kappa, k_bal_acc, k_acc = 0,0,0,0,0
+        k_f1, k_kappa, k_bal_acc, k_acc = 0,0,0,0
         split=1
         
         for train_idx, test_idx in kfold.split(self.test_subjects):
@@ -83,15 +82,14 @@ class sleep_pretrain(nn.Module):
             train_loader = DataLoader(TuneDataset(test_subjects_train), batch_size=self.config.batch_size, shuffle=True)
             test_loader = DataLoader(TuneDataset(test_subjects_test), batch_size=self.config.batch_size, shuffle= False)
 
-            f1, mean_f1, kappa, bal_acc, acc = self.ft_fun(self.name, train_loader,test_loader)
+            f1, kappa, bal_acc, acc = self.ft_fun(self.name, train_loader,test_loader)
             k_f1+=f1
-            k_mean_f1+=mean_f1
             k_kappa+=kappa
             k_bal_acc+=bal_acc
             k_acc+=acc
             split+=1
 
-        return k_f1/5, k_mean_f1/5, k_kappa/5, k_bal_acc/5, k_acc/5
+        return k_f1/5, k_kappa/5, k_bal_acc/5, k_acc/5
     
     def fit(self):
 
@@ -128,7 +126,7 @@ class sleep_pretrain(nn.Module):
 
             # evaluation step
             if (epoch % 5 == 0) and (epoch > 10):
-                f1, mean_f1, kappa, bal_acc, acc = self.do_kfold()
+                f1, kappa, bal_acc, acc = self.do_kfold()
 
                 if self.max_f1<f1:
                     chkpoint = {'eeg_model_state_dict':self.model.model.eeg_encoder.state_dict(),'best_pretrain_epoch':epoch}
@@ -136,12 +134,7 @@ class sleep_pretrain(nn.Module):
                     self.loggr.save(os.path.join(config.exp_path, self.name+'_best.pt'))
                     self.max_f1,self.max_kappa,self.max_bal_acc,self.max_acc = f1,kappa,bal_acc,acc
 
-                if self.max_mean_f1<mean_f1:
-                    chkpoint = {'eeg_model_state_dict':self.model.model.eeg_encoder.state_dict(),'best_pretrain_epoch':epoch}
-                    torch.save(chkpoint, os.path.join(config.exp_path, self.name+'_mean_best.pt'))
-                    self.loggr.save(os.path.join(config.exp_path, self.name+'_mean_best.pt'))
-                    self.max_mean_f1 = mean_f1
-                self.loggr.log({'F1':f1,'Mean-F1':mean_f1,'Kappa':kappa,'Bal Acc':bal_acc,'Acc':acc,'Epoch':epoch})
+                self.loggr.log({'F1':f1,'Kappa':kappa,'Bal Acc':bal_acc,'Acc':acc,'Epoch':epoch})
                 
                 
 
@@ -215,7 +208,7 @@ class sleep_ft(nn.Module):
         #self.scheduler.step(epoch_loss)
         
     def on_train_end(self):
-        return self.max_f1, self.mean_f1, self.max_kappa, self.max_bal_acc, self.max_acc
+        return self.max_f1, self.max_kappa, self.max_bal_acc, self.max_acc
 
     def fit(self):
         for ep in range(self.ft_epoch):
