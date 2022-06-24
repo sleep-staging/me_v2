@@ -34,9 +34,6 @@ class sleep_pretrain(nn.Module):
         self.ft_epochs = config.num_ft_epoch
 
         self.max_f1 = 0
-        self.max_kappa = 0
-        self.max_bal_acc = 0
-        self.max_acc = 0
 
         TEST_FILE = os.listdir(os.path.join(self.config.src_path, "test"))
         TEST_FILE = [os.path.join(self.config.src_path, "test", f) for f in TEST_FILE]
@@ -125,14 +122,13 @@ class sleep_pretrain(nn.Module):
             # evaluation step
             if (epoch % 5 == 0) and (epoch > 10):
                 f1, kappa, bal_acc, acc = self.do_kfold()
-
-                if self.max_f1<f1:
-                    chkpoint = {'eeg_model_state_dict':self.model.model.eeg_encoder.state_dict(),'best_pretrain_epoch':epoch}
-                    torch.save(chkpoint, os.path.join(config.exp_path, self.name+'_best.pt'))
-                    self.loggr.save(os.path.join(config.exp_path, self.name+'_best.pt'))
-                    self.max_f1,self.max_kappa,self.max_bal_acc,self.max_acc = f1,kappa,bal_acc,acc
-
                 self.loggr.log({'F1':f1,'Kappa':kappa,'Bal Acc':bal_acc,'Acc':acc,'Epoch':epoch})
+                
+                if self.max_f1 < f1:
+                    chkpoint = {'eeg_model_state_dict':self.model.model.eeg_encoder.state_dict(),'best_pretrain_epoch':epoch, 'f1': f1}
+                    torch.save(chkpoint, os.path.join(config.exp_path, self.name+ f'_best.pt'))
+                    self.loggr.save(os.path.join(config.exp_path, self.name+ f'_best.pt'))
+                    self.max_f1 = f1
                 
                 
 
