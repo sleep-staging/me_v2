@@ -25,7 +25,7 @@ class Config(object):
         self.lr = 0.0003
 
         self.num_epoch = 250
-        self.num_ft_epoch = 200
+        self.num_ft_epoch = 100
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.drop_last = True

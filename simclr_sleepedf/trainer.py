@@ -73,7 +73,6 @@ class sleep_pretrain(nn.Module):
     def do_kfold(self):
         kfold = KFold(n_splits=5, shuffle=True, random_state=1234)
         k_f1, k_kappa, k_bal_acc, k_acc = 0,0,0,0
-        split=1
         
         for train_idx, test_idx in kfold.split(self.test_subjects):
             test_subjects_train = [self.test_subjects[i] for i in train_idx]
@@ -87,7 +86,6 @@ class sleep_pretrain(nn.Module):
             k_kappa+=kappa
             k_bal_acc+=bal_acc
             k_acc+=acc
-            split+=1
 
         return k_f1/5, k_kappa/5, k_bal_acc/5, k_acc/5
     
@@ -194,7 +192,6 @@ class sleep_ft(nn.Module):
         bal_acc = balanced_accuracy_score(epoch_targets.cpu().numpy(),class_preds.cpu().numpy())
 
         if f1_sc > self.max_f1:
-            ConfusionMatrixDisplay.from_predictions(epoch_targets.cpu(),class_preds.cpu())
             # self.loggr.log({'Pretrain Epoch' : self.loggr.plot.confusion_matrix(probs=None,title=f'Pretrain Epoch :{self.pret_epoch+1}',
             #            y_true= epoch_targets.cpu().numpy(), preds= class_preds.numpy(),
             #            class_names= ['Wake', 'N1', 'N2', 'N3', 'REM'])})
@@ -202,11 +199,7 @@ class sleep_ft(nn.Module):
             self.max_kappa = kappa
             self.max_bal_acc = bal_acc
             self.max_acc = epoch_acc
-            self.loggr.log({f'Pretrain Epoch: Valid Confusion Matrix':plt})
-            plt.close('all')
-            
-        #self.scheduler.step(epoch_loss)
-        
+
     def on_train_end(self):
         return self.max_f1, self.max_kappa, self.max_bal_acc, self.max_acc
 
