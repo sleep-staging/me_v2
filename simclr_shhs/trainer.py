@@ -110,7 +110,7 @@ class sleep_pretrain(nn.Module):
                     loss,_,_,_,_= self.training_step(batch,batch_idx)
 
                 outputs['loss'].append(loss.item())
-                
+                self.optimizer.zero_grad()
                 scaler.scale(loss).backward()
                 scaler.step(self.optimizer)
                 scaler.update()
@@ -120,7 +120,7 @@ class sleep_pretrain(nn.Module):
             self.on_epoch_end()
 
             # evaluation step
-            if (epoch%10==0) and (epoch!=0):
+            if (epoch%10==0) :
                 f1,mean_f1,kappa,bal_acc,acc = self.do_kfold()
 
                 if self.max_f1<f1:
@@ -213,7 +213,7 @@ class sleep_ft(nn.Module):
     def fit(self):
 
         print("Hello")
-        for ft_epoch in range(self.ft_epoch):
+        for ft_epoch in tqdm(range(self.ft_epoch)):
 
             # Training Loop
 

@@ -1,0 +1,49 @@
+Loading dataloader
+Done
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+Model Loaded
+=========================================================================================================================
+Epoch: 0
+=========================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+417it [00:44,  9.58it/s]Exception ignored in: <function NpzFile.__del__ at 0x148cd49d0820>
+Traceback (most recent call last):
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/numpy/lib/npyio.py", line 223, in __del__
+417it [00:44,  9.39it/s]
+    self.close()
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/numpy/lib/npyio.py", line 214, in close
+    if self.zip is not None:
+AttributeError: 'NpzFile' object has no attribute 'zip'
+Traceback (most recent call last):
+  File "simclr_sleepedf/ts_main.py", line 33, in <module>
+    model.fit()
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/trainer.py", line 115, in fit
+    scaler.scale(loss).backward()
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/_tensor.py", line 363, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/autograd/__init__.py", line 173, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt

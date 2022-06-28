@@ -1,0 +1,24 @@
+{
+    "os": "Linux-4.15.0-180-generic-x86_64-with-glibc2.17",
+    "python": "3.8.12",
+    "heartbeatAt": "2022-06-25T16:19:57.638801",
+    "startedAt": "2022-06-25T16:19:55.139344",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3080 Ti",
+    "gpu_count": 2,
+    "cpu_count": 48,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "simclr_sleepedf/ts_main.py",
+    "codePath": "simclr_sleepedf/ts_main.py",
+    "git": {
+        "remote": "https://github.com/sleep-staging/me_v2.git",
+        "commit": "9adb25be2a905c77e7293b747667900c15843896"
+    },
+    "email": "vamsi81523@gmail.com",
+    "root": "/home/vamsi81523/me_v2",
+    "host": "gnode093",
+    "username": "vamsi81523",
+    "executable": "/home/vamsi81523/miniconda3/envs/torch/bin/python"
+}

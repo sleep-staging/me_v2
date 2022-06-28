@@ -8,6 +8,8 @@ class Config(object):
         self.exp_path = "."
         self.wandb = wandb
         self.batch_size = 128
+        self.eval_batch_size = 512
+        self.eval_early_stopping = 10
 
         self.degree = 0.05
         self.mask_max_points = 200

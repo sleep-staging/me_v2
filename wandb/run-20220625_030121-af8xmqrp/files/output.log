@@ -1,0 +1,133 @@
+Loading dataloader
+Done
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+[34m[1mwandb[39m[22m: [33mWARNING[39m Saving files without folders. If you want to preserve sub directories pass base_path to wandb.save, i.e. wandb.save("/mnt/folder/file.h5", base_path="/mnt")
+Model Loaded
+=========================================================================================================================
+Epoch: 0
+=========================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1062it [01:52,  9.06it/s]
+
+1081it [01:54,  9.43it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Evaluation:  27%|█████████████████████████████████▊                                                                                           | 27/100 [02:26<06:35,  5.42s/it]
+Traceback (most recent call last):
+  File "simclr_sleepedf/ts_main.py", line 33, in <module>
+    model.fit()
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/trainer.py", line 129, in fit
+    f1, kappa, bal_acc, acc = self.do_kfold()
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/trainer.py", line 83, in do_kfold
+    f1, kappa, bal_acc, acc = self.ft_fun(self.name, train_loader,test_loader)
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/trainer.py", line 68, in ft_fun
+    f1,kappa,bal_acc,acc = sleep_eval.fit()
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/trainer.py", line 230, in fit
+    dct = self.validation_step(ft_batch,ft_batch_idx)
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/trainer.py", line 185, in validation_step
+    outs = self.model(data)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/models/model.py", line 138, in forward
+    x= self.time_model(x)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/models/resnet1d.py", line 97, in forward
+    x = self.layer3x3_1(x0)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/vamsi81523/me_v2/simclr_sleepedf/models/resnet1d.py", line 38, in forward
+    out = self.conv2(out)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/conv.py", line 302, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/home/vamsi81523/miniconda3/envs/torch/lib/python3.8/site-packages/torch/nn/modules/conv.py", line 298, in _conv_forward
+    return F.conv1d(input, weight, bias, self.stride,
+KeyboardInterrupt

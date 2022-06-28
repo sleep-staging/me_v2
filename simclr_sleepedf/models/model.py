@@ -63,16 +63,15 @@ class sleep_model(nn.Module):
         super(sleep_model,self).__init__()
         
         self.eeg_encoder= encoder()
-        self.weak_pj1 = projection_head(config)
-        self.strong_pj1 = projection_head(config)
+        self.pj = projection_head(config)
 
     def forward(self, weak_data, strong_data):
         
         weak_data = self.eeg_encoder(weak_data)
         strong_data = self.eeg_encoder(strong_data)
 
-        weak_data = self.weak_pj1(weak_data.unsqueeze(1))
-        strong_data = self.strong_pj1(strong_data.unsqueeze(1))
+        weak_data = self.pj(weak_data.unsqueeze(1))
+        strong_data = self.pj(strong_data.unsqueeze(1))
 
         return weak_data, strong_data
 
@@ -119,7 +118,7 @@ class ft_loss(nn.Module):
     def __init__(self, chkpoint_pth, config, device):
 
         super(ft_loss,self).__init__()
-        self.eeg_encoder = encoder(config)
+        self.eeg_encoder = encoder()
         
         chkpoint = torch.load(chkpoint_pth, map_location=device)
         eeg_dict = chkpoint['eeg_model_state_dict']
