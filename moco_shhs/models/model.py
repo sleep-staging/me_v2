@@ -90,6 +90,7 @@ class contrast_loss(nn.Module):
     def __init__(self,config):
 
         super(contrast_loss,self).__init__()
+        self.config = config
         self.model = sleep_model(config)
         self.T = config.temperature
         

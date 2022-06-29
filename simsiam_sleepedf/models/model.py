@@ -42,18 +42,18 @@ class encoder(nn.Module):
 class projection_head(nn.Module):
 
     def __init__(self, config, input_dim=256):
-        super(projection_head,self).__init__()
+        super(projection_head, self).__init__()
         self.config = config
         
         self.projection_head = nn.Sequential(
                     nn.Linear(input_dim, config.proj_dim, bias=True),
                     nn.BatchNorm1d(config.proj_dim),
                     nn.ReLU(inplace=True),
-                    nn.Linear(config.proj_dim, config.proj_dim, bias=True)
-                    nn.BatchNorm1d(config.proj_dim),
-                )
+                    nn.Linear(config.proj_dim, config.proj_dim, bias=True),
+                    nn.BatchNorm1d(config.proj_dim)
+        )
  
-    def forward(self,x):
+    def forward(self, x):
         x = x.reshape(x.shape[0], -1) # B, 128
         x = self.projection_head(x)
         return x
