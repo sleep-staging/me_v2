@@ -15,7 +15,7 @@ torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 
 
-name = 'simclr_sleepedf'
+name = 'simclr_sleepedf_final'
 ss_wandb = wandb.init(project='me_v2',name=name ,notes='normalized recording wise',save_code=True,entity='sleep-staging')
 config = Config(ss_wandb)
 

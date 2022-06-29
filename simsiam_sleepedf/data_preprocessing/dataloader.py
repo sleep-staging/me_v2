@@ -1,13 +1,11 @@
-#%%
 import torch
-import time
 import numpy as np
 import os
 from torch.utils.data import Dataset
-from .ch2_augmentations import augment
-from tqdm import tqdm
+from .augmentations import augment
 
 class Load_Pretext_Dataset(Dataset):
+    
     # Initialize your data, download, etc.
     def __init__(self, data_path, config):
         super(Load_Pretext_Dataset, self).__init__()
@@ -16,26 +14,23 @@ class Load_Pretext_Dataset(Dataset):
         self.files = [os.path.join(self.data_path,file) for file in self.files]
         self.config =  config
 
-
     def __getitem__(self, index):
-        dat = torch.tensor(np.load(self.files[index])['pos'])
-        x_dat = dat[0][0].unsqueeze(0) # 1,3000
-        return augment(x_dat,self.config)
-
+        x = torch.tensor(np.load(self.files[index])['pos'])
+        x = x[0][0].unsqueeze(0) # 1,3000
+        return augment(x, self.config)
 
     def __len__(self):
-        self.len =  len(self.files)
-        return self.len
+        return len(self.files)
+
 
 def data_generator(data_path, configs):
 
-
     train_dataset = Load_Pretext_Dataset(data_path, configs)
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=configs.batch_size,
-                                               shuffle=True, drop_last=configs.drop_last,num_workers=10
+                                               shuffle=True, drop_last=configs.drop_last, num_workers=10
                                                )
-
     return train_loader
+
 
 class TuneDataset(Dataset):
     """Dataset for train and test"""
@@ -58,8 +53,7 @@ class TuneDataset(Dataset):
         self.y = []
 
         for subject in self.subjects:
-            x = subject['x']
-            self.X.append(np.expand_dims(x[:,:,0],axis=1))
+            self.X.append(np.expand_dims(subject['x'][:,:,0],axis=1))
             self.y.append(subject['y'])
 
         self.X = torch.tensor(np.concatenate(self.X, axis=0))

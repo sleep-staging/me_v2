@@ -1,24 +1,24 @@
-#%%
 import torch
 
 class Config(object):
 
     def __init__(self,wandb=None):
 
-
         self.src_path = "/scratch/SLEEP_data/"
         self.exp_path = "."
         self.wandb = wandb
-        self.batch_size = 256
+        self.batch_size = 128
+        self.eval_batch_size = 512
+        self.eval_early_stopping = 15
 
         self.degree = 0.05
         self.mask_max_points = 200
         self.mask_min_points = 50 
 
-        self.tc_hidden_dim = 128
+        self.proj_dim = 128
 
         # loss parameters
-        self.temperature = 1
+        self.temperature = 0.5
 
         # optimizer paramters
         self.optimizer = "adam"
@@ -26,7 +26,7 @@ class Config(object):
         self.beta2 = 0.99
         self.lr = 0.0003
 
-        self.num_epoch = 200
+        self.num_epoch = 250
         self.num_ft_epoch = 100
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"

@@ -2,13 +2,12 @@ import os
 import time, math
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 import numpy as np
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from config import Config
 from torchmetrics.functional import accuracy,f1,cohen_kappa
 from models.model import contrast_loss, ft_loss
-from sklearn.metrics import ConfusionMatrixDisplay,balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score
 from data_preprocessing.dataloader import TuneDataset
 from sklearn.model_selection import KFold
 from tqdm import tqdm
@@ -57,10 +56,8 @@ class sleep_pretrain(nn.Module):
     def on_epoch_end(self):
         chkpoint = {'eeg_model_state_dict': self.model.model.eeg_encoder.state_dict()}
         torch.save(chkpoint, os.path.join(config.exp_path, self.name+'.pt'))
-        self.loggr.save(os.path.join(config.exp_path, self.name+'.pt'))
         full_chkpoint = {'model_state_dict':self.model.state_dict(),'epoch':self.current_epoch}
         torch.save(full_chkpoint, os.path.join(config.exp_path, self.name+"_full"+'.pt'))
-        self.loggr.save(os.path.join(config.exp_path, self.name+'_full.pt'))
         return None
 
     def ft_fun(self, epoch,train_dl,valid_dl):
@@ -125,18 +122,16 @@ class sleep_pretrain(nn.Module):
             self.on_epoch_end()
 
             # evaluation step
-            if (epoch % 10 == 0) :
+            if (epoch % 5 == 0) :
                 f1, kappa, bal_acc, acc = self.do_kfold()
-
                 self.loggr.log({'F1':f1,'Kappa':kappa,'Bal Acc':bal_acc,'Acc':acc,'Epoch':epoch})
                 print(f'F1: {f1} Kappa: {kappa} B.Acc: {bal_acc} Acc: {acc}')
 
-
-            if self.max_f1 < f1:
-                chkpoint = {'eeg_model_state_dict':self.model.model.eeg_encoder.state_dict(),'best_pretrain_epoch':epoch, 'f1': f1}
-                torch.save(chkpoint, os.path.join(config.exp_path, self.name+ f'_best.pt'))
-                self.loggr.save(os.path.join(config.exp_path, self.name+ f'_best.pt'))
-                self.max_f1 = f1
+                if self.max_f1 < f1:
+                    chkpoint = {'eeg_model_state_dict':self.model.model.eeg_encoder.state_dict(),'best_pretrain_epoch':epoch, 'f1': f1}
+                    torch.save(chkpoint, os.path.join(config.exp_path, self.name+ f'_best.pt'))
+                    self.loggr.save(os.path.join(config.exp_path, self.name+ f'_best.pt'))
+                    self.max_f1 = f1
                                
 
 class sleep_ft(nn.Module):
@@ -242,14 +237,14 @@ class sleep_ft(nn.Module):
 
                 val_loss = self.validation_epoch_end(ft_outputs)
                 
-#             if val_loss + 0.001 < self.best_loss:
-#                 self.best_loss = val_loss
-#                 self.counter = 0
-#             else:
-#                 self.counter += 1
+            if val_loss + 0.001 < self.best_loss:
+                self.best_loss = val_loss
+                self.counter = 0
+            else:
+                self.counter += 1
      
-#             if self.counter == self.eval_es:
-#                 print(f'Early stopped at {ep} epoch')
-#                 break
+            if self.counter == self.eval_es:
+                print(f'Early stopped at {ep} epoch')
+                break
                 
         return self.on_train_end()

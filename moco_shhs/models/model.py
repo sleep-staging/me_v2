@@ -1,33 +1,19 @@
-#%%
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-#%%
+
 from .resnet1d import BaseNet
-
-class encoder(nn.Module):
-
-    def __init__(self,config):
-        super(encoder,self).__init__()
-        self.time_model = BaseNet()
-        self.attention = attention(config)
-        
-    def forward(self, x): 
-
-        time = self.time_model(x)
-
-        time_feats = self.attention(time)
-
-        return time_feats
 
 
 class attention(nn.Module):
-    def __init__(self,config):
+        
+    def __init__(self, n_dim=256):
         super(attention,self).__init__()
-        self.att_dim =256
-        self.W = nn.Parameter(torch.randn(256, self.att_dim))
+        self.att_dim = n_dim
+        self.W = nn.Parameter(torch.randn(n_dim, self.att_dim))
         self.V = nn.Parameter(torch.randn(self.att_dim, 1))
         self.scale = self.att_dim**-0.5
+        
     def forward(self,x):
         x = x.permute(0, 2, 1)
         e = torch.matmul(x, self.W)
@@ -38,31 +24,46 @@ class attention(nn.Module):
         alpha = torch.div(n1, n2)
         x = torch.sum(torch.mul(alpha, x), 1)
         return x
+    
+    
+class encoder(nn.Module):
+
+    def __init__(self):
+        super(encoder,self).__init__()
+        self.time_model = BaseNet()
+        self.attention = attention()
+        
+    def forward(self, x): 
+        x = self.time_model(x)
+        x = self.attention(x)
+        return x
 
 
 class projection_head(nn.Module):
 
-    def __init__(self,config,input_dim=256):
+    def __init__(self, config, input_dim=256):
         super(projection_head,self).__init__()
         self.config = config
+        
         self.projection_head = nn.Sequential(
-                nn.Linear(input_dim,config.tc_hidden_dim),
-                nn.BatchNorm1d(config.tc_hidden_dim),
+                nn.Linear(input_dim, config.proj_dim, bias=True),
                 nn.ReLU(inplace=True),
-                nn.Linear(config.tc_hidden_dim,config.tc_hidden_dim))
+                nn.Linear(config.proj_dim, config.proj_dim, bias=True)
+                )
  
     def forward(self,x):
-        x = x.reshape(x.shape[0],-1)
+        x = x.reshape(x.shape[0], -1) # B, 128
         x = self.projection_head(x)
         return x
 
+
 class sleep_model(nn.Module):
 
-    def __init__(self,config):
+    def __init__(self, config):
         super(sleep_model,self).__init__()
 
-        self.q_encoder = encoder(config)
-        self.k_encoder = encoder(config)
+        self.q_encoder = encoder()
+        self.k_encoder = encoder()
 
         for param_q, param_k in zip(self.q_encoder.parameters(), self.k_encoder.parameters()):
             param_k.data.copy_(param_q.data) 
@@ -75,20 +76,14 @@ class sleep_model(nn.Module):
             param_k.data.copy_(param_q.data) 
             param_k.requires_grad = False  # not update by gradient
 
-        self.wandb = config.wandb
+    def forward(self, weak_data, strong_data):
 
-
-    def forward(self,weak_dat,strong_dat):
-
-        weak_eeg_dat = weak_dat.float()
-        strong_eeg_dat = strong_dat.float()
-
-        anchor = self.q_encoder(weak_eeg_dat)
+        anchor = self.q_encoder(weak_data)
         anchor = self.q_proj(anchor)
-        positive = self.k_encoder(strong_eeg_dat)
+        positive = self.k_encoder(strong_data)
         positive = self.k_proj(positive)
 
-        return anchor,positive
+        return anchor, positive
 
 class contrast_loss(nn.Module):
 
@@ -97,11 +92,7 @@ class contrast_loss(nn.Module):
         super(contrast_loss,self).__init__()
         self.model = sleep_model(config)
         self.T = config.temperature
-        self.wandb = config.wandb
-        self.config = config
-        self.n_queue = 4096 # SIZE of the dictionary queue
-        self.queue = torch.rand((self.n_queue, 128), dtype = torch.float).to(config.device)
-        self.ptr = 0
+        
         
     def loss(self, anchor, positive, queue):
         
@@ -125,32 +116,22 @@ class contrast_loss(nn.Module):
         loss = F.cross_entropy(logits, labels)
         
         return loss # mean
-#%%
 
-    def forward(self,weak,strong,epoch):
+    def forward(self, weak, strong, queue):
         anchor,positive= self.model(weak,strong)
-        l1 = self.loss(anchor,positive,self.queue)
+        l1 = self.loss(anchor,positive, queue)
         
-        # Updating queue
-        if self.queue.shape[0] == self.n_queue:
-            self.queue = torch.roll(self.queue, -positive.shape[0], 0)
-            self.queue[-positive.shape[0]:] = positive
-        else:
-            self.queue[self.ptr: self.ptr+positive.shape[0]] = positive
-            self.ptr += positive.shape[0]
-        
-        return l1,l1.item(),0,0,0
+        return l1, positive
 
 
-#%%
 class ft_loss(nn.Module):
 
-    def __init__(self,chkpoint_pth,config,device):
+    def __init__(self, chkpoint_pth, config, device):
 
         super(ft_loss,self).__init__()
-        self.eeg_encoder = encoder(config)
+        self.eeg_encoder = encoder()
         
-        chkpoint = torch.load(chkpoint_pth,map_location=device)
+        chkpoint = torch.load(chkpoint_pth, map_location=device)
         eeg_dict = chkpoint['eeg_model_state_dict']
 
         self.eeg_encoder.load_state_dict(eeg_dict)
@@ -160,11 +141,12 @@ class ft_loss(nn.Module):
 
         self.time_model = self.eeg_encoder.time_model
         self.attention = self.eeg_encoder.attention
-        self.lin = nn.Linear(256,5)
+        self.lin = nn.Linear(256, 5)
 
-    def forward(self,time_dat):
+    def forward(self, x):
 
-        time_feats= self.time_model(time_dat)
-        time_feats = self.attention(time_feats)
-        x = self.lin(time_feats)
-        return x 
+        x= self.time_model(x)
+        x = self.attention(x)
+        x = self.lin(x)
+        return x  
+    

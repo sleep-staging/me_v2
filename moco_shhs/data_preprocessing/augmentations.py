@@ -1,4 +1,3 @@
-#%%
 import numpy as np
 import torch
 from scipy.interpolate import interp1d
@@ -112,4 +111,4 @@ def augment(x,config):
     ''' use jitter in every aug to get two different eeg signals '''
     weak_ret = masking(jitter(x,config),config)
     strong_ret = scaling(flip(x,config),config,degree_scale=3)
-    return weak_ret,strong_ret
+    return weak_ret, strong_ret

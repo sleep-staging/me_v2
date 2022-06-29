@@ -8,3 +8,8 @@
 */*/wandb/
 */*.pt
 */*/*.pt
+wandb/
+__pycache__/
+lightning_logs/
+.ipynb_checkpoints/
+.vscode/
