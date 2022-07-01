@@ -72,7 +72,6 @@ class predictor_head(nn.Module):
                 )
  
     def forward(self,x):
-        x = x.reshape(x.shape[0], -1) # B, 128
         x = self.projection_head(x)
         return x
 
@@ -95,7 +94,7 @@ class sleep_model(nn.Module):
         proj2 = self.proj(strong_data)
         pred2 = self.pred(proj2)
 
-        return pred1, proj1, pred2, proj2
+        return pred1, pred2, proj1, proj2
 
 class contrast_loss(nn.Module):
 
@@ -103,10 +102,21 @@ class contrast_loss(nn.Module):
 
         super(contrast_loss,self).__init__()
         self.model = sleep_model(config)
-        self.T = config.temperature
+   
+    def forward(self, weak, strong):
+        pred1, pred2, proj1, proj2 = self.model(weak, strong)
+        return pred1, pred2, proj1, proj2
     
+class loss_fn(torch.nn.modules.loss._Loss):
 
-    def loss(self, p1, p2, z1, z2):
+    def __init__(self, T=0.5):
+        """
+        T: softmax temperature (default: 0.07)
+        """
+        super(loss_fn, self).__init__()
+        self.T = T
+
+    def forward(self, p1, p2, z1, z2):
 
         # L2 normalize
         p1 = F.normalize(p1, p=2, dim=1)
@@ -120,11 +130,6 @@ class contrast_loss(nn.Module):
 
         loss = - (l_pos1.mean() + l_pos2.mean()) / 2 # using mean
                 
-        return loss
-
-    def forward(self, weak, strong):
-        pred1, proj1, pred2, proj2 = self.model(weak, strong)
-        loss = self.loss(pred1, pred2, proj1, proj2)
         return loss
     
     

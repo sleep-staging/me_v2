@@ -6,7 +6,7 @@ import numpy as np
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from config import Config
 from torchmetrics.functional import accuracy,f1,cohen_kappa
-from models.model import contrast_loss, ft_loss
+from models.model import contrast_loss, ft_loss, loss_fn
 from sklearn.metrics import balanced_accuracy_score
 from data_preprocessing.dataloader import TuneDataset
 from sklearn.model_selection import KFold
@@ -30,6 +30,7 @@ class sleep_pretrain(nn.Module):
         self.loggr = wandb_logger
         self.optimizer = torch.optim.Adam(self.model.parameters(), self.config.lr, betas=(self.config.beta1, self.config.beta2), weight_decay=self.weight_decay)
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', patience=5, factor=0.2) 
+        self.criterion = loss_fn.to(self.device)
         self.epochs = config.num_epoch
         self.ft_epochs = config.num_ft_epoch
 
@@ -42,7 +43,8 @@ class sleep_pretrain(nn.Module):
     def training_step(self, batch, batch_idx):
         weak,strong= batch
         weak, strong = weak.float().to(self.device), strong.float().to(self.device)
-        loss = self.model(weak, strong)
+        pred1, pred2, proj1, proj2 = self.model(weak, strong)
+        loss = self.criterion(pred1, pred2, proj1, proj2)
         return loss
     
     def training_epoch_end(self, outputs):
@@ -113,7 +115,7 @@ class sleep_pretrain(nn.Module):
                 scaler.step(self.optimizer)
                 scaler.update()
                 
-                outputs['loss'].append(loss.item())
+                outputs['loss'].append(loss.detach().item())
 
             epoch_loss = self.training_epoch_end(outputs)  
             
